@@ -1,7 +1,7 @@
 import cv2
 import argparse
 import os
-from model import SSD, Predictor
+from fashion_detection.model import SSD, Predictor
 from utils.utils import draw_boxes
 import glob
 
@@ -12,7 +12,7 @@ model_path = './models/vgg16-ssd-Epoch-125-Loss-2.8042236075681797.pth'
 net = SSD(len(class_names), is_test=True)
 net.load(model_path)
 predictor = Predictor(net, candidate_size=200)
-data_path = glob.glob('./image/*.jpg')
+data_path = glob.glob('./image/plain*.jpg')
 for image_path in data_path:
     img = cv2.imread(image_path)
     boxes, labels, probs = predictor.predict(img, 30, 0.5)
