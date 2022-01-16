@@ -1,7 +1,7 @@
 import cv2
 import argparse
 import os
-from fashion_detection.model import SSD, Predictor
+from fashion_detection_model import SSD, Predictor
 from utils.utils import draw_boxes
 import glob
 

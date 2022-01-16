@@ -1,22 +1,44 @@
+from pydoc import getpager
 import streamlit as st
 import cv2
 import numpy as np
 from PIL import Image
 import io
-from fashion_detection.model import SSD, Predictor
+import tensorflow as tf 
+import tensorflow.keras as keras
+from fashion_detection_model import SSD, Predictor
 from utils.utils import draw_boxes, cut_cothes
-from utils.color_recognition import get_color
+from color_recognition import get_color
+from pattern_recognition import get_pattern
 st.set_page_config(page_title='Fashion Recognition',page_icon="👗", layout="wide")
 
-@st.cache
-def load_model(model_path, class_names):
-    net = SSD(len(class_names), is_test=True)
-    net.load(model_path)
-    model = Predictor(net, candidate_size=200)
-    
-    return model
+# @st.cache(hash_funcs={keras.engine.functional.Functional: id})
+# def load_model(model_path_detection, class_names_detection, model_path_pattern):
+#     net = SSD(len(class_names_detection), is_test=True)
+#     net.load(model_path_detection)
+#     model_detection = Predictor(net, candidate_size=200)
 
-def predict_od(model, img):
+#     model_pattern = tf.keras.models.load_model(model_path_pattern)
+    
+#     return model_detection, model_pattern
+
+@st.cache
+def load_model(model_path_detection, class_names_detection):
+    net = SSD(len(class_names_detection), is_test=True)
+    net.load(model_path_detection)
+    model_detection = Predictor(net, candidate_size=200)
+    
+    return model_detection
+
+
+# @st.cache(hash_funcs={keras.engine.functional.Functional: lambda _: None})
+def load_model_pattern(model_path_pattern):
+    model_pattern = tf.keras.models.load_model(model_path_pattern)
+    # print(type(model_pattern))
+    return model_pattern
+
+
+def predict_od(model, img, class_names):
     boxes, labels, probs = model.predict(img, 50, thresh)
     list_clothes = cut_cothes(img, boxes, labels, probs, class_names)
     img_draw = draw_boxes(img, boxes, labels, probs, class_names)
@@ -25,6 +47,8 @@ def predict_od(model, img):
 
 def convert_color(img):
     return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+
 
 def UI():
     st.markdown("<h1 style='text-align: center; color: black;'>Fashion Recognition</h1>", unsafe_allow_html=True)
@@ -37,7 +61,7 @@ def UI():
     if img_file_buffer is not None:
         img = np.array(Image.open(img_file_buffer))
         # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img_draw, list_clothes = predict_od(model_od, img)
+        img_draw, list_clothes = predict_od(model_od, img, class_names_detection)
 
         # _, a, _ = st.columns((1,10, 1))
         a.image(img_draw)
@@ -48,10 +72,12 @@ def UI():
             _, a, b, _ = st.columns((1,2,3, 1))
             img_clothes = i['img']
             label_clothes = i['label']
-            color_clothes = get_color(img_clothes, 4)
+            color_clothes = get_color(img_clothes, 3)
+            pattern_clothes = get_pattern(img_clothes, model_pattern, class_names_pattern)
             a.image(img_clothes)
             b.markdown('## {}'.format(label_clothes))
             b.markdown('### Color: {}'.format(color_clothes))
+            b.markdown('### Pattern: {}'.format(pattern_clothes))
             _, a, _ = st.columns((1,5, 1))
             a.markdown('---')
 
@@ -140,7 +166,11 @@ def UI():
 
 if __name__ == "__main__":
     thresh = 0.5
-    class_names = ['BACKGROUND', 'sunglass', 'hat', 'jacket', 'shirt', 'pants', 'shorts', 'skirt', 'dress', 'bag', 'shoe']
-    model_od = load_model('./models/vgg16-ssd-Epoch-125-Loss-2.8042236075681797.pth', class_names)
-    
+    class_names_detection = ['BACKGROUND', 'sunglass', 'hat', 'jacket', 'shirt', 'pants', 'shorts', 'skirt', 'dress', 'bag', 'shoe']
+    class_names_pattern = ['floral', 'plain', 'polka dot', 'squares', 'stripes']
+    model_path_detection = './models/vgg16-ssd-Epoch-125-Loss-2.8042236075681797.pth'
+    model_path_pattern = './models/fashion_pattern_41_0.88.h5'
+    # model_od, model_pattern = load_model(model_path_detection, class_names_detection, model_path_pattern)
+    model_od = load_model(model_path_detection, class_names_detection)
+    model_pattern = load_model_pattern(model_path_pattern)
     UI()
