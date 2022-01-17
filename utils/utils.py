@@ -3,13 +3,18 @@ from PIL import Image
 import numpy as np 
 import io 
 import time 
-
+import math
 
 def draw_boxes(img, boxes, labels, probs, class_names):
     img_copy = img.copy()
+    h, w = img.shape[0], img.shape[1]
     for i in range(boxes.size(0)):
         box = boxes[i, :]
-        img_copy = cv2.rectangle(img_copy, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (255, 255, 0), 1)
+        x1 = max(math.ceil(box[0]), 0)
+        y1 = max(math.ceil(box[1]), 0)
+        x2 = min(math.floor(box[2]), w)
+        y2 = min(math.floor(box[3]), h)
+        img_copy = cv2.rectangle(img_copy, (x1, y1), (x2, y2), (255, 255, 0), 1)
         label = f"{class_names[labels[i]]}: {probs[i]:.2f}"
         img_copy = cv2.putText(img_copy, label,
                     (int(box[0]) + 10, int(box[1]) + 10),
@@ -21,14 +26,15 @@ def draw_boxes(img, boxes, labels, probs, class_names):
     return img_copy
 
 def cut_cothes(img, boxes, labels, probs, class_names):
+    h, w = img.shape[0], img.shape[1]
     list_img = []
 
     for i in range(boxes.size(0)):
         box = boxes[i, :]
-        x1 = int(box[0])
-        y1 = int(box[1])
-        x2 = int(box[2])
-        y2 = int(box[3])
+        x1 = max(math.ceil(box[0]), 0)
+        y1 = max(math.ceil(box[1]), 0)
+        x2 = min(math.floor(box[2]), w)
+        y2 = min(math.floor(box[3]), h)
         cut_img = img[y1:y2, x1:x2]
         list_img.append({'label': class_names[labels[i]], 'img': cut_img, 'probs':probs[i]})
 

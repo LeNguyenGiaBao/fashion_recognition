@@ -54,7 +54,7 @@ def plot_color(list_color, values):
     hex_colors = [rgb2hex(ordered_colors[i]) for i in values.keys()]
     name_color = [hex2name(ordered_colors[i]) for i in values.keys()]
     fig1, ax1 = plt.subplots(figsize=(3,3))
-    ax1.pie(values.values(), labels = name_color, colors = hex_colors, startangle=90, textprops={'fontsize': 5})
+    ax1.pie(values.values(), labels = name_color, colors = hex_colors, startangle=90, textprops={'fontsize': 14})
     ax1.axis('equal')  
 
     return fig1, ax1
@@ -76,18 +76,20 @@ def UI():
         a.image(img_draw)
         a.markdown('---')
 
-        _, a, b, _ = st.columns((1,3,7, 1))
         for i in list_clothes:
-            _, a, _, b, c,_ = st.columns((1,1,.1,1,1, 1))
+            _, a, _, b, c,_ = st.columns((0.5,1.5,.3,1.3,1.5, 0.5))
             img_clothes = i['img']
             label_clothes = i['label']
             center_colors, counts = get_color(img_clothes, 3)
-
+            max_color_index = max(counts, key=counts.get)
+            main_color = center_colors[max_color_index]
+            main_color_name = hex2name(main_color)
             pattern_clothes = get_pattern(img_clothes, model_pattern, class_names_pattern)
-            a.image(img_clothes)
-            b.markdown('## Type: {}'.format(label_clothes))
+            a.image(img_clothes, use_column_width=True)
+            b.markdown('## {}'.format(label_clothes))
             # b.markdown('### Color: {}'.format(color_clothes))
-            b.markdown('### Pattern: {}'.format(pattern_clothes))
+            b.markdown('#### Pattern: {}'.format(pattern_clothes))
+            b.markdown('#### Color: {}'.format(main_color_name))
             c.markdown('### Color')
             fig, ax = plot_color(center_colors, counts)
             c.pyplot(fig)
@@ -179,8 +181,8 @@ def UI():
 
 if __name__ == "__main__":
     thresh = 0.5
-    class_names_detection = ['BACKGROUND', 'sunglass', 'hat', 'jacket', 'shirt', 'pants', 'shorts', 'skirt', 'dress', 'bag', 'shoe']
-    class_names_pattern = ['floral', 'plain', 'polka dot', 'squares', 'stripes']
+    class_names_detection = ['BACKGROUND', 'Sunglass', 'Hat', 'Jacket', 'Shirt', 'Pants', 'Shorts', 'Skirt', 'Dress', 'Bag', 'Shoe']
+    class_names_pattern = ['Floral', 'Plain', 'Dot', 'Squares', 'Stripes']
     model_path_detection = './models/vgg16-ssd-Epoch-125-Loss-2.8042236075681797.pth'
     model_path_pattern = './models/fashion_pattern_41_0.88.h5'
     # model_od, model_pattern = load_model(model_path_detection, class_names_detection, model_path_pattern)
