@@ -40,13 +40,6 @@ def get_color(image, number_of_colors):
     center_colors = clf.cluster_centers_
 
     return center_colors, counts
-    # max_color_index = max(counts, key=counts.get)
-
-    # main_color = center_colors[max_color_index]
-    
-    # return main_color, center_colors, counts
-
-
 
 if __name__ == "__main__":
     img = cv2.imread('../image/1_crop.jpg')
