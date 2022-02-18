@@ -73,7 +73,7 @@ six==1.16.0
 scikit-learn==1.0.2
 smmap==5.0.0
 streamlit==1.4.0
-tensorflow==2.7.0
+tensorflow==2.8.0
 terminado==0.12.1
 testpath==0.5.0
 toml==0.10.2
